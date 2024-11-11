@@ -57,6 +57,8 @@
               "./init/retina"
             ];
 
+            proxyVendor = true;
+
             nativeBuildInputs = with pkgs; [
               clang
               bpftools
@@ -88,15 +90,26 @@
             # remember to bump this hash when your dependencies change.
             # vendorHash = pkgs.lib.fakeHash;
 
-            vendorHash = "sha256-5YWM+8TpGUCW47pSa0nQiCLNoH9RRgy6bUG3py2/XB4=";
+            vendorHash = "sha256-dj2LkeppCX82YfYKELQH0CXlNbVpakDJZw4qjbg/eRc=";
+          };
+          retina-plugin-sources = pkgs.stdenv.mkDerivation {
+            name = "retina-plugin-sources";
+            src = ./pkg/plugin;
+
+            buildPhase = ''
+              mkdir -p $out/github.com/microsoft/retina/pkg/plugin
+              cp -r $src/* $out/github.com/microsoft/retina/pkg/plugin
+            '';
           };
           retina-agent-image = pkgs.dockerTools.buildImage {
             name = "retina-agent";
 
             copyToRoot = [
               retina-agent
+              retina-plugin-sources
               pkgs.clang
               pkgs.libbpf
+              pkgs.coreutils
             ];
 
             runAsRoot = ''
