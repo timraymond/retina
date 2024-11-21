@@ -132,10 +132,36 @@
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
+          bpf2go = pkgs.buildGoModule {
+            pname = "bpf2go";
+            version = "latest";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "cilium";
+              repo = "ebpf";
+              rev = "v0.16.0";
+              sha256 = "sha256-8WUmFbXOZuMex1R6X00DUzEe0QO0KRdsKxA0AJ7WfNw=";
+            };
+
+            vendorHash = "sha256-b4bd7K7e7YIpFma2zkRzQe3VO8UUuaoQqlS5G2t6qFE=";
+
+            buildPhase = "go install ./cmd/bpf2go";
+          };
         in
         {
           default = pkgs.mkShell {
-            buildInputs = with pkgs; [ go gopls gotools go-tools ];
+            buildInputs = with pkgs; [
+              go
+              gopls
+              gotools
+              go-tools
+              hubble
+              bpftools
+              bpf2go
+              mockgen
+              llvm
+              clang
+            ];
           };
         });
 
