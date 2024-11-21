@@ -1,10 +1,16 @@
 {
-  description = "A simple Go package";
+  description = "A flake for retina";
 
   # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-24.05";
+    ebpf-src = {
+      url = "github:cilium/ebpf/v0.16.0";
+      flake = false;
+    };
+  };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, ebpf-src }:
     let
 
       # to work with older version of flakes
@@ -16,11 +22,27 @@
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
+      bpf2go-overlay = final: prev: {
+        bpf2go = final.buildGoModule {
+          pname = "bpf2go";
+          version = "v0.16.0";
+          src = ebpf-src;
+          doCheck = false;
+          vendorHash = "sha256-b4bd7K7e7YIpFma2zkRzQe3VO8UUuaoQqlS5G2t6qFE=";
+          subPackages = [ "cmd/bpf2go" ];
+        };
+      };
+
       # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
       # Nixpkgs instantiated for supported system types.
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+      nixpkgsFor = forAllSystems (system: import nixpkgs {
+        inherit system;
+        overlays = [
+          bpf2go-overlay
+        ];
+      });
 
     in
     {
@@ -29,21 +51,6 @@
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          bpf2go = pkgs.buildGoModule {
-            pname = "bpf2go";
-            version = "latest";
-
-            src = pkgs.fetchFromGitHub {
-              owner = "cilium";
-              repo = "ebpf";
-              rev = "v0.16.0";
-              sha256 = "sha256-8WUmFbXOZuMex1R6X00DUzEe0QO0KRdsKxA0AJ7WfNw=";
-            };
-
-            vendorHash = "sha256-b4bd7K7e7YIpFma2zkRzQe3VO8UUuaoQqlS5G2t6qFE=";
-
-            buildPhase = "go install ./cmd/bpf2go";
-          };
         in rec {
           retina-agent = pkgs.buildGoModule {
             pname = "retina-agent";
@@ -60,6 +67,7 @@
             proxyVendor = true;
 
             nativeBuildInputs = with pkgs; [
+              go
               clang
               bpftools
               libbpf
@@ -90,7 +98,7 @@
             # remember to bump this hash when your dependencies change.
             # vendorHash = pkgs.lib.fakeHash;
 
-            vendorHash = "sha256-dj2LkeppCX82YfYKELQH0CXlNbVpakDJZw4qjbg/eRc=";
+            vendorHash = "sha256-EPABukJC8eTBC0aBUSM1yzQPR1SVLqdblr7e6u3nk3E=";
           };
           retina-plugin-sources = pkgs.stdenv.mkDerivation {
             name = "retina-plugin-sources";
@@ -132,21 +140,6 @@
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          bpf2go = pkgs.buildGoModule {
-            pname = "bpf2go";
-            version = "latest";
-
-            src = pkgs.fetchFromGitHub {
-              owner = "cilium";
-              repo = "ebpf";
-              rev = "v0.16.0";
-              sha256 = "sha256-8WUmFbXOZuMex1R6X00DUzEe0QO0KRdsKxA0AJ7WfNw=";
-            };
-
-            vendorHash = "sha256-b4bd7K7e7YIpFma2zkRzQe3VO8UUuaoQqlS5G2t6qFE=";
-
-            buildPhase = "go install ./cmd/bpf2go";
-          };
         in
         {
           default = pkgs.mkShell {

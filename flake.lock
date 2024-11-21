@@ -1,12 +1,29 @@
 {
   "nodes": {
+    "ebpf-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1721751234,
+        "narHash": "sha256-8WUmFbXOZuMex1R6X00DUzEe0QO0KRdsKxA0AJ7WfNw=",
+        "owner": "cilium",
+        "repo": "ebpf",
+        "rev": "061e86d8f5e99aa6f04d11a3807c8cacdbe7908b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cilium",
+        "ref": "v0.16.0",
+        "repo": "ebpf",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1730883749,
-        "narHash": "sha256-mwrFF0vElHJP8X3pFCByJR365Q2463ATp2qGIrDUdlE=",
+        "lastModified": 1731797254,
+        "narHash": "sha256-df3dJApLPhd11AlueuoN0Q4fHo/hagP75LlM5K1sz9g=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "dba414932936fde69f0606b4f1d87c5bc0003ede",
+        "rev": "e8c38b73aeb218e27163376a2d617e61a2ad9b59",
         "type": "github"
       },
       "original": {
@@ -17,6 +34,7 @@
     },
     "root": {
       "inputs": {
+        "ebpf-src": "ebpf-src",
         "nixpkgs": "nixpkgs"
       }
     }
